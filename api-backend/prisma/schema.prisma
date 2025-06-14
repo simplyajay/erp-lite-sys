@@ -1,0 +1,250 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../prisma/generated/"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("NEON_DB_URL")
+}
+
+enum Roles {
+
+  Owner
+  Admin
+  User
+
+}
+
+enum EntityStatus {
+
+  Active
+  Inactive
+
+}
+
+enum EntityType {
+
+  Supplier
+  Customer
+
+}
+
+enum Measurements {
+
+  EA
+  PK
+  CTN
+  BX
+  GAL
+
+}
+
+enum DocumentTypes {
+
+  PurchaseOrder
+  SalesOrder
+  Invoice
+  Bill
+  ReturnOrder
+  CreditNote
+  Quotation
+
+}
+
+enum DocumentStatus {
+
+  Complete
+  Pending
+  Cancelled
+  Rejected
+  Accepted
+
+}
+
+enum PaymentStatus {
+
+  Paid
+  PartiallyPaid
+  Overdue
+  Open
+  NotApplicable
+
+
+}
+
+model Organization {
+
+id  Int @id @default(autoincrement())
+users User[]
+name  String
+street1 String?
+street2 String?
+city String?
+state String?
+country String?
+zip String?
+phone String @unique
+email String @unique
+image String 
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt 
+
+@@map("organizations")
+
+}
+
+model User{
+
+id  Int @id @default(autoincrement())
+orgId Int?
+organization  Organization? @relation(fields: [orgId], references: [id])
+products Product[]
+documents Document[]
+businessEntities BusinessEntity[]
+username String @unique
+password String
+firstname String
+middlename String?
+lastname String
+email String @unique
+phone String? @unique
+image String?
+role Roles
+createdAt DateTime @default(now())
+updatedAt DateTime  @updatedAt
+
+@@map("users")
+@@index([orgId])
+
+}
+
+model BusinessEntity{
+
+id Int @id @default(autoincrement())
+type EntityType
+ownerId Int
+owner User @relation(fields: [ownerId], references: [id])
+documents Document[]
+name String
+trn String @unique
+description String?
+note String?
+defaultMarkup Decimal?
+standardMarkup Decimal?
+website String?
+street1 String?
+street2 String?
+city String?
+state String?
+country String?
+zip String?
+contactTitle String?
+contactFirstName String?
+contactMiddleName String?
+contactLastName String?
+contactPhone String?
+contactEmail String?
+creditLimit Decimal
+openBalance Decimal
+totalOverdue Decimal
+status EntityStatus @default(Active)
+image String
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+
+@@map("business_entities")
+@@index([ownerId])
+@@index([trn])
+@@index([name])
+@@index([totalOverdue])
+@@index([openBalance])
+
+}
+
+model Product {
+
+id Int @id @default(autoincrement())
+ownerId Int
+owner User @relation(fields: [ownerId], references: [id])
+documents DocumentProduct[]
+name String
+sku String @unique
+barcode String @unique
+description String?
+costPrice Decimal
+unitOfMeasurement Measurements
+quantity Decimal
+image String?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt 
+
+@@map("products")
+@@index([ownerId])
+@@index([unitOfMeasurement])
+@@index([name])
+@@index([barcode])
+@@index([sku])
+
+}
+
+model Document{
+
+id Int @id @default(autoincrement())
+ownerId Int
+owner User @relation(fields: [ownerId], references: [id])
+businessEntityId Int
+businessEntity BusinessEntity @relation(fields:[businessEntityId], references: [id])
+documentCode String @unique
+documentType DocumentTypes
+documentStatus DocumentStatus
+paymentStatus PaymentStatus
+products DocumentProduct[]
+date DateTime @default(now())
+dueDate DateTime
+vatAmount Decimal
+vatRate Decimal
+amountBeforeVat Decimal
+amountAfterVat Decimal
+taxWithheldAmount Decimal?
+withHoldingTaxRate Decimal?
+withHoldingTaxAmount Decimal?
+note String?
+memorandum String?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+
+@@map("documents")
+@@index([ownerId])
+@@index([businessEntityId])
+@@index([paymentStatus])
+@@index([documentStatus])
+@@index([documentCode])
+
+}
+
+model DocumentProduct{
+
+  id Int @id @default(autoincrement())
+  documentId Int
+  document Document @relation(fields: [documentId], references: [id])
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+  name String
+  sku String
+  barcode String
+  description String?
+  sellingPrice Decimal
+  unitOfMeasurement Measurements
+  quantity Decimal
+
+  @@map("document_products")
+
+}
+
