@@ -1,0 +1,35 @@
+services:
+  frontend:
+    build: ./web-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web-frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+
+  backend:
+    build: ./api-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./api-backend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  redis:
+    image: redis:latest
+    ports:
+      - "4000:4000"
+    volumes: -redis-data:/data
+
+volumes:
+  frontend_modules:
+  backend_modules:
+  redis-data:

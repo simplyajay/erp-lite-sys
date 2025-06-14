@@ -1,0 +1,118 @@
+@import "tailwindcss";
+@import "react-toastify/dist/ReactToastify.css";
+@import "react-loading-skeleton/dist/skeleton.css";
+
+:root {
+  color: var(--foreground);
+  background: #f4fdff;
+  font-family: Arial, Helvetica, sans-serif;
+  @apply text-gray-700;
+}
+
+@theme inline {
+  --font-primary: var(--font-manrope), sans-serif;
+  --font-secondary: var(--font-poppins), sans-serif;
+}
+
+@layer components {
+  .Toastify_toast-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    width: fit-content !important;
+  }
+
+  .input {
+    @apply p-2 min-h-10 w-full rounded-md focus:ring-2 focus:ring-blue-100 focus:outline-none border border-gray-400;
+  }
+
+  .input-error {
+    @apply ring-2 ring-red-200;
+  }
+
+  .main-container {
+    @apply h-full w-full p-5 md:p-10;
+  }
+  .card-container {
+    @apply w-full flex flex-col md:shadow-md rounded-md bg-white;
+  }
+
+  .btn {
+    @apply min-w-[100px] flex items-center justify-center gap-2
+     rounded-sm px-4 py-2 transition-colors duration-300 cursor-pointer disabled:cursor-default;
+  }
+
+  .btn-primary-transparent {
+    @apply hover:text-blue-400 focus:ring-0 focus:outline-none focus:text-blue-400;
+  }
+
+  .btn-primary-solid {
+    @apply bg-[#a6ccfd] disabled:bg-[#a6ccfd] hover:bg-[#8dbdfc] focus:ring-2 focus:ring-blue-300 focus:outline-none;
+  }
+
+  .btn-secondary-solid {
+    @apply bg-[#e2e9ec] disabled:bg-[#e2e9ec] hover:bg-[#d8dde2] focus:ring-2 focus:ring-gray-300 focus:outline-none;
+  }
+}
+
+@layer utilities {
+  .nav-public {
+    @apply sticky top-0 bg-white/80 backdrop-blur-md shadow-sm z-50;
+  }
+  .scrollbar-thin {
+    overflow: auto;
+    transition: overflow 0.3s ease;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 3px;
+    height: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(49, 49, 49, 0.3); /* or any color */
+    border-radius: 9999px;
+  }
+
+  .text-display {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight;
+  }
+
+  .text-heading {
+    @apply text-lg sm:text-xl md:text-2xl lg:text-3xl leading-tight;
+  }
+  .text-body-lg {
+    @apply text-base sm:text-lg md:text-xl lg:text-[1.25rem] text-gray-700 leading-normal;
+  }
+
+  .text-body {
+    @apply text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed;
+  }
+
+  .text-body-sm {
+    @apply text-xs sm:text-sm md:text-base text-gray-600 leading-snug;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .icon {
+    stroke-width: 1;
+    fill: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .scrollbar-thin {
+    overflow: hidden;
+  }
+  .scrollbar-thin:hover {
+    overflow: auto;
+  }
+}
