@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckIcon } from "@/components/icons/Icons";
+import { CheckIcon } from "@/core/components/icons/Icons";
 
 const StepGroup = ({
   step,
@@ -62,16 +62,16 @@ const StepGroup = ({
 const StepIndicator = ({ currentStep, accountType }) => {
   if (currentStep === 6) return;
   const stepsTypeOrg = [
-    { number: 1, steps: [1], label: "Type" },
-    { number: 2, steps: [2, 3], label: "Info" },
-    { number: 3, steps: [4], label: "Account" },
-    { number: 4, steps: [5], label: "Review" },
+    { number: 1, steps: ["accountType"], label: "Type" },
+    { number: 2, steps: ["businessInfo", "personalInfo"], label: "Info" },
+    { number: 3, steps: ["accountInfo"], label: "Account" },
+    { number: 4, steps: ["review"], label: "Review" },
   ];
   const stepsTypeInd = [
-    { number: 1, steps: [1], label: "Type" },
-    { number: 2, steps: [3], label: "Info" },
-    { number: 3, steps: [4], label: "Account" },
-    { number: 4, steps: [5], label: "Review" },
+    { number: 1, steps: ["accountType"], label: "Type" },
+    { number: 2, steps: ["personalInfo"], label: "Info" },
+    { number: 3, steps: ["accountInfo"], label: "Account" },
+    { number: 4, steps: ["review"], label: "Review" },
   ];
 
   const steps =

@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import ToastProvider from "@/components/toast/ToastProvider";
-import Navbar from "@/components/navigation/navbar/Navbar";
-import Sidebar from "@/components/navigation/sidebar/Sidebar";
+import ToastProvider from "@/core/components/toast/ToastProvider";
+import Navbar from "@/core/components/navigation/navbar/Navbar";
+import Sidebar from "@/core/components/navigation/sidebar/Sidebar";
 
 const ProtectedLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(true);

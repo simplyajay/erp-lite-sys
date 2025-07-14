@@ -1,5 +1,5 @@
-import api from "@/lib/axios";
-import { handleResponse } from "@/lib/api.service";
+import api from "@/core/axios/axios";
+import { handleResponse } from "@/core/axios/api.service";
 
 export const getProducts = async (config = {}) => {
   return await handleResponse(api.get("/api/stocks", config));

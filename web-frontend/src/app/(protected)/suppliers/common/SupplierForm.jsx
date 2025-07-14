@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import Form from "@/components/forms/v1/Form";
+import Form from "@/core/components/forms/v1/Form";
 import { updateSupplier } from "@/api/supplier";
 import { addSupplier } from "@/api/supplier";
 import {
@@ -8,7 +8,7 @@ import {
   getEntityFormValues,
   BusinessEntitySchema,
 } from "../config/form.config";
-import { notify } from "@/components/toast/ToastProvider";
+import { notify } from "@/core/components/toast/ToastProvider";
 
 const SupplierForm = ({ state, updateState, fetchSuppliers, entity }) => {
   const [updating, setUpdating] = useState(false);

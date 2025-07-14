@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from "@/components/icons/Icons";
+import { ExternalLinkIcon } from "@/core/components/icons/Icons";
 
 export const getSuppliersTableColumns = ({ handleEdit }) => [
   { key: "name", head: "COMPANY NAME", sortable: true, body: (row) => row.name },

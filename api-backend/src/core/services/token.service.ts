@@ -1,22 +1,25 @@
 import jwt from "jsonwebtoken";
-import envConfig from "../../config/env.config.js";
+import { IJWTDecodedUser } from "./services";
+import { Request } from "express";
 
-export const extractAuthToken = (req, envName) => {
+export const extractAuthToken = (req: Request, name: string): string | null => {
   if (!req) return null;
 
   const authHeader = req?.headers?.authorization;
-  if (authHeader?.startsWith("Bearer ")) {
+  if (typeof authHeader === "string" && authHeader?.startsWith("Bearer ")) {
     return authHeader.split(" ")[1];
   }
 
-  const token = req.cookies?.[envName];
+  const sid = req.cookies?.[name];
 
-  return token || null;
+  return sid || null;
 };
 
-export const verifyAuthToken = (token) => {
+export const verifyAuthToken = (token: string) => {
+  const key = process.env.JWT_SECRET;
+  if (!key) throw new Error("JWT_SECRET is not defined");
   try {
-    return jwt.verify(token, process.env.JWT_SECRET);
+    return jwt.verify(token, key) as IJWTDecodedUser;
   } catch (error) {
     return null;
   }

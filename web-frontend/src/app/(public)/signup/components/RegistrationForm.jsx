@@ -1,5 +1,7 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
+import { FormProvider } from "react-hook-form";
+import { useSearchParams } from "next/navigation";
 import Button from "./formElements/Button";
 import AccountType from "./steps/AccountType";
 import BusinessDetails from "./steps/BusinessDetails";
@@ -11,18 +13,22 @@ import StepIndicator from "./formElements/StepIndicator";
 import useRegistration from "../hooks/useRegistration";
 import LoadingBar from "./formElements/LoadingBar";
 import useRegistrationUiStore from "@/store/useRegistration";
-import { FormProvider } from "react-hook-form";
 
-const RegistrationForm = ({ cachedData }) => {
-  const { currentFlow } = cachedData;
+const RegistrationForm = () => {
+  const searchParams = useSearchParams();
 
-  const { currentStep, handleFormSubmit, handleNext, formMethods } = useRegistration({
-    cachedData,
-  });
+  const currentFlow = searchParams.get("flow");
 
-  const { loading } = useRegistrationUiStore((state) => state);
+  const { currentStep, handleFormSubmit, handleNext, formMethods } = useRegistration();
+
+  const { loading, setLoading, flow, setFlow } = useRegistrationUiStore((state) => state);
 
   const { getValues, handleSubmit } = formMethods;
+
+  useEffect(() => {
+    setFlow(currentFlow);
+    setLoading(false);
+  }, [flow, currentFlow, setFlow]);
 
   const values = getValues();
 
@@ -35,7 +41,7 @@ const RegistrationForm = ({ cachedData }) => {
     confirmed: { Component: Success },
   };
 
-  const StepComponent = stepsMap[currentFlow];
+  const StepComponent = stepsMap[flow];
 
   const renderStep = (step) => {
     const { Component, isFormStep } = step;
@@ -52,13 +58,13 @@ const RegistrationForm = ({ cachedData }) => {
             })}
           >
             <Component />
-            <Button loading={loading} currentFlow={currentFlow} />
+            <Button loading={loading} currentFlow={flow} />
           </form>
         </FormProvider>
       );
     }
 
-    if (currentFlow === "review") {
+    if (flow === "review") {
       return <Component values={values} onSubmit={handleNext} />;
     }
 
@@ -67,7 +73,8 @@ const RegistrationForm = ({ cachedData }) => {
 
   return (
     <div className="relative flex-1 card-container">
-      <LoadingBar />
+      {loading && <LoadingBar />}
+
       <div className="flex-1 w-full flex flex-col p-8 gap-10 justify-start items-center">
         <StepIndicator currentStep={currentStep} accountType={values.accountType} />
         {renderStep(StepComponent)}

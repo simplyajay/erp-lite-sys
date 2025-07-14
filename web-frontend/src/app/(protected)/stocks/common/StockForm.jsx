@@ -1,10 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import Form from "@/components/forms/v1/Form";
+import Form from "@/core/components/forms/v1/Form";
 import { updateProduct } from "@/api/products";
 import { addProduct } from "@/api/products";
 import { getStockFormConfig, ProductSchema, getProductFormValues } from "../config/form.config";
-import { notify } from "@/components/toast/ToastProvider";
+import { notify } from "@/core/components/toast/ToastProvider";
 
 const StockForm = ({ state, updateState, fetchProduct, entity }) => {
   const [updating, setUpdating] = useState(false);

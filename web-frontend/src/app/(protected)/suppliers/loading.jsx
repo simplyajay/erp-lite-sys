@@ -1,5 +1,5 @@
 import React from "react";
-import TableSkeleton from "@/components/table/TableSkeleton";
+import TableSkeleton from "@/core/components/table/TableSkeleton";
 
 const loading = () => {
   return <TableSkeleton />;

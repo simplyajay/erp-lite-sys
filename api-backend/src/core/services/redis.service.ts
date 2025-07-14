@@ -1,7 +1,16 @@
+import { RedisKey } from "ioredis";
 import redisConfig from "../../config/redis.config.js";
+
+interface ISetOptions {
+  key: RedisKey;
+  value: any;
+  ttlSeconds?: number;
+  keepTTL?: boolean;
+}
 
 class RedisService {
   //access with this.client
+
   get client() {
     return redisConfig.isConnected() ? redisConfig.getClient() : null;
   }
@@ -10,27 +19,36 @@ class RedisService {
     return redisConfig.isConnected();
   }
 
-  async get(key) {
-    if (!redisConfig.isConnected()) return null;
+  async get(key: RedisKey): Promise<string | void | null> {
+    const client = this.client;
+    const connected = this.isConnected();
+
+    if (!client || !connected) return;
 
     try {
-      return await this.client.get(key);
+      return await client.get(key);
     } catch (error) {
       console.warn("Redis error getting key: ", error);
-      return null;
+      return;
     }
   }
 
-  async set({ key, value, ttlSeconds = 60, keepTTL = false }) {
-    if (!redisConfig.isConnected()) return;
+  async set({ key, value, ttlSeconds, keepTTL = true }: ISetOptions): Promise<void> {
+    const client = this.client;
+    const connected = redisConfig.isConnected();
+
+    if (!client || !connected) {
+      console.warn("Redis error setting key: Client unkown or Redis is not connected");
+      return;
+    }
 
     try {
       if (keepTTL) {
-        await this.client.set(key, value, "KEEPTTL");
-      } else if (ttlSeconds > 0) {
-        await this.client.set(key, value, "EX", ttlSeconds);
+        await client.set(key, value, "KEEPTTL");
+      } else if (ttlSeconds && ttlSeconds > 0) {
+        await client.set(key, value, "EX", ttlSeconds);
       } else {
-        await this.client.set(key, value);
+        await client.set(key, value);
       }
     } catch (error) {
       console.warn("Redis error setting key: ", error);
@@ -38,28 +56,36 @@ class RedisService {
     }
   }
 
-  async delete(key) {
-    if (!redisConfig.isConnected()) return;
+  async delete(key: RedisKey): Promise<void> {
+    const client = this.client;
+    const connected = redisConfig.isConnected();
+    if (!client || !connected) {
+      console.warn("Redis error setting key: Client unkown or Redis is not connected");
+      return;
+    }
 
     try {
-      await this.client.del(key);
+      await client.del(key);
     } catch (error) {
       console.warn("Redis error setting key: ", error);
       return;
     }
   }
 
-  async setJSON({ key, value, ttlSeconds = 60, keepTTL = false }) {
+  async setJSON<T>({ key, value, ttlSeconds = 60, keepTTL = false }: ISetOptions): Promise<T> {
     this.set({ key, value: JSON.stringify(value), ttlSeconds, keepTTL });
     return value;
   }
 
-  async getJSON(key) {
+  async getJSON<T>(key: RedisKey): Promise<T | null> {
     const raw = await this.get(key);
+
+    if (!raw) return null;
     try {
-      return raw ? JSON.parse(raw) : null;
+      return JSON.parse(raw);
     } catch (error) {
       console.warn("Redis error parsing key: ", error);
+      return null;
     }
   }
 }

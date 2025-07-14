@@ -84,7 +84,7 @@ export const flowMap = {
   personalInfo: 3,
   accountInfo: 4,
   review: 5,
-  confirmed: 5,
+  confirmed: 6,
 };
 
 export const validationMap = {

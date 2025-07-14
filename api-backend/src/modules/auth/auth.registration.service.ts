@@ -7,123 +7,127 @@ import {
 } from "../../core/services/validateFields.service.js";
 import { validatePassword } from "../../core/services/validatePassword.service.js";
 import { formatFormError } from "../../core/utils/formErrors.util.js";
+import { Request } from "express";
+import { ICookie, IServiceResponse } from "@/core/services/services.js";
+import { IPublicSession, IRegSessionCachedData } from "./auth.js";
+import sessionService from "./auth.session.service.js";
 
 const prefix = envConfig.get("REDIS_PREFIX");
 const suffix = envConfig.get("REDIS_REG_SUFFIX");
-const flowMap = {
-  1: "accountType",
-  2: "businessInfo",
-  3: "personalInfo",
-  4: "accountInfo",
-  5: "review",
-  6: "confirmed",
-};
+const name = envConfig.get("PUBLIC_TOKEN");
 
-/*
-  {
-    currentFlow: flow,
-    accountType: {
-      identity: identityId,
-      value: {
-        accountType: 'organization' || 'individual'
-      }
-    },
-    organiztaion: {
-      identity: identityId,
-      value: {
-        name: Organization,
-        email: 'organization@email'
-      }
-    }
-  }
-  */
+export const createRegSession = async (
+  req: Request
+): Promise<IServiceResponse<{ identity: string }>> => {
+  const sid = req.publicToken;
 
-const getNextFlow = (accountType, currentFlow) => {
-  const getFlowNum = (flow) => {
-    return Object.keys(flowMap).find((key) => flowMap[key] === flow);
+  if (!name || !sid) throw new Error("PUBLIC_TOKEN or SID is not defined"); //handle in frontend
+
+  const identity = nanoid(64);
+
+  const registrationCachedData: IRegSessionCachedData = {
+    identity,
+    completedSteps: [],
   };
-  try {
-    if (!currentFlow || !accountType) return null;
 
-    const prevFlowNum = parseInt(getFlowNum(currentFlow), 10);
-    let flowNum;
+  const overrides = { registration: registrationCachedData };
 
-    if (currentFlow === "accountType" && accountType === "individual") {
-      flowNum = prevFlowNum + 2;
-    } else {
-      flowNum = prevFlowNum + 1;
-    }
-
-    return flowMap[flowNum];
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-};
-
-export const createRegSession = async (req) => {
-  const tokenVal = req.publicToken;
-
-  const identityId = nanoid(64);
-  const flow = flowMap[1]; // first step of the form
-  const data = { currentFlow: flow, [flow]: { identity: identityId, values: {} } };
-
-  const newCachedData = await redisService.setJSON({
-    key: `${prefix}${tokenVal}${suffix}`,
-    value: data,
-    ttlSeconds: 1200,
-    keepTTL: true,
+  const { cookie, createdAt, expiresAt } = await sessionService.setSessionData({
+    name,
+    sid,
+    overrides,
   });
 
-  return newCachedData;
+  return { payload: { identity }, session: { name, createdAt, expiresAt }, cookies: [cookie] };
 };
 
-export const validateRegSession = async (req) => {
-  const { identityId, accountType } = req.body; //identityId ( changed to nanoid )
+export const validateRegSession = async (
+  req: Request<any, any, { identityId: string; accountType: string; identity: string }>
+): Promise<IServiceResponse<{ isValid: boolean }>> => {
+  const { identityId, accountType, identity } = req.body; //identityId ( changed to nanoid )
+
+  console.log(identity);
+  const sid = req.publicToken;
+
+  if (!sid) throw new Error("Invalid session");
 
   if (!identityId) return { valid: false };
 
   const cachedData = await redisService.getJSON(`${prefix}${identityId}`);
 
-  if (cachedData && cachedData.accountType === accountType) return { valid: true };
+  if (cachedData && cachedData.accountType === accountType) return { payload: { isValid: true } };
 
-  return { valid: false };
+  return { payload: { isValid: false } };
 };
 
-export const exportCachedData = async (req) => {
-  const tokenVal = req.publicToken;
-  const payload = req.body;
+export const exportRegSessionData = async (
+  req: Request<any, any, { identity: string }>
+): Promise<IServiceResponse<{
+  registration?: IRegSessionCachedData;
+  error?: unknown;
+  redirect: boolean;
+}> | void> => {
+  const sid = req.publicToken;
+  const { identity } = req.body;
 
-  if (!payload.identity || !payload.flow)
-    return { error: { status: 400, message: "Missing required fields" } };
+  if (!sid || !name) throw new Error("PUBLIC_TOKEN or SID is not defined");
 
-  const cachedData = await redisService.getJSON(`${prefix}${tokenVal}${suffix}`);
+  const redisKey = `${name}==${sid}`;
 
-  const targetFlow = payload.flow;
-  const targetData = cachedData[targetFlow];
+  const publicSession = await redisService.getJSON<IPublicSession>(redisKey);
 
-  console.log(targetFlow);
+  if (!publicSession || !publicSession.registration || !identity || identity === "undefined") {
+    //create new session
+    const newIdentity = nanoid(64);
 
-  if (payload.identity !== targetData?.identity) {
-    console.log(payload);
-    console.log(cachedData);
-    return { error: { status: 400, message: "Invalid URL" } };
+    const registrationCachedData: IRegSessionCachedData = {
+      identity: newIdentity,
+      completedSteps: [],
+    };
+
+    const overrides = { registration: registrationCachedData };
+
+    //send new cookie to update frontend cookie
+    const { cookie, createdAt, expiresAt } = await sessionService.setSessionData(name, sid, {
+      overrides,
+      withCookie: true,
+    });
+
+    //debug
+    if (!cookie) console.log("Unexpected error: cookie not defined");
+
+    return {
+      payload: { registration: registrationCachedData, redirect: true },
+      session: { name, createdAt, expiresAt },
+      ...(cookie && { cookies: [cookie] }), // only inject the cookie if it exists which it should in this case
+    };
   }
 
-  const { currentFlow } = cachedData;
+  const { registration } = publicSession;
 
-  return { currentFlow: targetFlow, [targetFlow]: targetData };
+  if (identity !== registration.identity) {
+    return { payload: { error: { status: 400, message: "Invalid URL" }, redirect: false } };
+  }
+
+  return { payload: { registration, redirect: false } };
 };
 
-export const validateCurrentStep = async (req) => {
+type ValidatorFlowKey = "businessInfo" | "personalInfo" | "accountInfo";
+
+export const validateCurrentStep = async (req: Request): Promise<IServiceResponse<{}> | void> => {
   try {
-    const tokenVal = req.publicToken;
+    const sid = req.publicToken;
+
+    if (!sid) throw new Error("Invalid SID");
+
     const data = req.body;
-    const { currentFlow } = req.query;
+    const { flow } = req.query;
     const { accountType } = data;
 
-    const validateGeneralInfo = async (data) => {
-      const entity = currentFlow === "businessInfo" ? "organization" : "user";
+    if (typeof flow !== "string") throw new Error("Invalid flow");
+
+    const validateGeneralInfo = async (data: Record<string, any>) => {
+      const entity = flow === "businessInfo" ? "organization" : "user";
       const fields = data[entity];
       await validateUniqueness(entity, fields);
       await validateProfanity(fields);
@@ -132,40 +136,32 @@ export const validateCurrentStep = async (req) => {
     const validators = {
       businessInfo: validateGeneralInfo,
       personalInfo: validateGeneralInfo,
-      accountInfo: async (data) => {
+      accountInfo: async (data: Record<string, any>) => {
         await validateGeneralInfo(data);
         await validatePassword(data.password);
       },
     };
 
-    const validator = validators[currentFlow];
+    const validator = validators[flow as ValidatorFlowKey];
 
     if (validator) {
       const { accountType, ...rest } = data;
       await validator(data);
-    } else if (!Object.values(flowMap).includes(currentFlow)) {
+    } else if (!Object.values(flowMap).includes(flow)) {
       throw new Error("400: Invalid Step");
     }
 
-    const nextFlow = getNextFlow(accountType, currentFlow);
+    const publiSessionData = await getPublicSession(sid);
+    if (!publiSessionData) throw new Error("No Public Session Found");
 
-    if (!nextFlow) {
-      return { error: { status: 400, message: "Invalid Flow" } };
-    }
+    const registrationCachedData: IRegSessionCachedData = {
+      identity,
+      completedSteps: [],
+    };
 
-    const identity = nanoid(64);
-
-    const cachedData = await redisService.getJSON(`${prefix}${tokenVal}${suffix}`);
-
-    const newCachedData = await redisService.setJSON({
-      key: `${prefix}${tokenVal}${suffix}`,
-      value: {
-        ...cachedData,
-        currentFlow: nextFlow,
-        [currentFlow]: { ...cachedData[currentFlow], values: data },
-        [nextFlow]: { identity, values: {} },
-      },
-      ttlSeconds: 1200,
+    await setPublicSession({
+      key: sid,
+      value: { ...publiSessionData, registration: registrationCachedData },
       keepTTL: true,
     });
 

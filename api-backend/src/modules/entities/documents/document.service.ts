@@ -1,5 +1,8 @@
-import ModelRepository from "../../repositories/model.repository.js";
+import { Document, DocumentProduct, Product } from "@prisma/client";
+import ModelRepository from "../../repositories/base.repository.js";
+import { IDocument } from "./document.js";
 import Document from "./document.model.js";
+import { toIDocumentProduct } from "../product/product.service.js";
 
 class DocumentService {
   constructor() {
@@ -53,5 +56,28 @@ class DocumentService {
     return `${prefix}-${number}`;
   }
 }
+
+export const toIDocument = (doc: Document & { products: DocumentProduct[] }): IDocument => {
+  return {
+    id: doc.id,
+    ownerId: doc.ownerId,
+    organizationId: doc.organizationId ?? null,
+    documentType: doc.documentType,
+    documentStatus: doc.documentStatus,
+    paymentStatus: doc.paymentStatus,
+    products: doc.products?.map(toIDocumentProduct),
+    date: doc.date,
+    dueDate: doc.dueDate,
+    vatAmount: doc.vatAmount.toNumber(),
+    vatRate: doc.vatRate.toNumber(),
+    amountBeforeVat: doc.amountBeforeVat.toNumber(),
+    amountAfterVat: doc.amountAfterVat.toNumber(),
+    taxWithheldAmount: doc.taxWithheldAmount?.toNumber() ?? null,
+    withholdingTaxRate: doc.withHoldingTaxRate?.toNumber() ?? null,
+    withholdingTaxAmount: doc.withHoldingTaxAmount?.toNumber() ?? null,
+    note: doc.note ?? null,
+    memorandum: doc.memorandum ?? null,
+  };
+};
 
 export default new DocumentService();

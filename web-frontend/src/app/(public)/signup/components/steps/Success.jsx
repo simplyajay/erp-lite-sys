@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { HomeIconSolid, CheckIcon, LogInIcon } from "@/components/icons/Icons";
-import { fadeTransitionv1 } from "@/components/motion/transitions";
+import { HomeIconSolid, CheckIcon, LogInIcon } from "@/core/components/icons/Icons";
+import { fadeTransitionv1 } from "@/core/components/motion/transitions";
 
 const Success = () => {
   return (

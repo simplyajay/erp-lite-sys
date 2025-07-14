@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import SuppliersTable from "./SuppliersTable";
-import FormDialog from "@/components/dialogs/FormDialog";
+import FormDialog from "@/core/components/dialogs/FormDialog";
 import SupplierForm from "../common/SupplierForm";
 import { useSupplier } from "../hooks/useSupplier";
 import { getSuppliers } from "@/api/supplier";

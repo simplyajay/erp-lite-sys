@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { fadeTransitionv1 } from "@/components/motion/transitions";
+import { fadeTransitionv1 } from "@/core/components/motion/transitions";
 
 const detailsConfig = {
   organization: {

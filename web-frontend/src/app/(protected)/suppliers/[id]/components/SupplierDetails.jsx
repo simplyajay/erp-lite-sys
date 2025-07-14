@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import SupplierDocumentsTable from "./SupplierDocumentsTable";
 import SupplierDetailsOverview from "./SupplierDetailsOverview";
 import { useSupplierDocuments } from "../hooks/useSupplierDocuments";
-import FormDialog from "@/components/dialogs/FormDialog";
+import FormDialog from "@/core/components/dialogs/FormDialog";
 import SupplierForm from "../../common/SupplierForm";
 import { useRouter } from "next/navigation";
 import { getDocumentsByEntity } from "@/api/documents";

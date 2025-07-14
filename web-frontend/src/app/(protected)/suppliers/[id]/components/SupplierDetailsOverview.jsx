@@ -1,6 +1,6 @@
 import React from "react";
-import { ButtonCon, ButtonConfirmBlueLight } from "@/components/button/CustomButtons";
-import { EditIcon } from "@/components/icons/Icons";
+import { ButtonCon, ButtonConfirmBlueLight } from "@/core/components/button/CustomButtons";
+import { EditIcon } from "@/core/components/icons/Icons";
 
 const SupperlierDetailsOverview = ({ supplier, onEdit }) => {
   const { name, address, contact, openbalance, totaloverdue } = supplier;

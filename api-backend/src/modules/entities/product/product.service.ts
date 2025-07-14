@@ -1,24 +1,23 @@
-import ModelRepository from "../../repositories/model.repository.js";
-import Product from "./product.model.js";
+import ModelRepository from "../../repositories/base.repository.js";
+import BaseRepository from "../../repositories/base.repository.js";
 import { formatFormError } from "../../../core/utils/formErrors.util.js";
+import { IDocumentProduct, IProduct } from "./product.js";
+import { DocumentProduct, Product } from "@prisma/client";
+import { Request } from "express";
 
 class ProductService {
-  constructor() {
-    this.productRepository = new ModelRepository(Product);
-  }
-  async createProduct(req) {
-    try {
-      const _ownerId = req?.user?._orgId || req?.user?._id;
-      const prod = req.body;
-      const product = { _ownerId, ...prod };
-      return await this.productRepository.create(product);
-    } catch (error) {
-      if (error.code === 11000) {
-        return { error: formatFormError(error) };
-      } else {
-        throw error;
-      }
-    }
+  private readonly productRepo = new BaseRepository<Product, IProduct>("product");
+
+  async new(
+    req: Request<any, any, Omit<IProduct, "ownerId" | "organizationId">>
+  ): Promise<IProduct> {
+    const ownerId = req.user._id;
+    const organizationId = req.user._orgId ?? null;
+    const product = req.body;
+    const newProduct = { ...product, ownerId, organizationId };
+    const res = await this.productRepo.create(newProduct);
+    const createdProduct = toIProduct(res);
+    return createdProduct;
   }
 
   async findAllProducts(req) {
@@ -47,5 +46,34 @@ class ProductService {
     return await this.productRepository.deleteById(id);
   }
 }
+
+// convert Product ( PrismaModel ) to match my Interface structure
+export const toIProduct = (product: Product): IProduct => {
+  return {
+    id: product.id,
+    ownerId: product.ownerId,
+    organizationId: product.organizationId ?? null,
+    name: product.name,
+    sku: product.sku,
+    barcode: product.barcode,
+    description: product.description ?? null,
+    unitOfMeasurement: product.unitOfMeasurement,
+    quantity: product.quantity.toNumber(),
+  };
+};
+
+export const toIDocumentProduct = (product: DocumentProduct): IDocumentProduct => {
+  return {
+    id: product.id,
+    name: product.name,
+    sku: product.sku,
+    barcode: product.barcode,
+    description: product.description ?? null,
+    costPrice: product.costPrice.toNumber(),
+    sellingPrice: product.sellingPrice.toNumber(),
+    unitOfMeasurement: product.unitOfMeasurement,
+    quantity: product.quantity.toNumber(),
+  };
+};
 
 export default new ProductService();

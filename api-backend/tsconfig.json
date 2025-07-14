@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "es2024",
-    "module": "nodenext",
-    "moduleResolution": "NodeNext",
+    "module": "commonjs",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -11,7 +11,11 @@
     "rootDir": "src",
     "resolveJsonModule": true,
     "types": ["node"],
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

@@ -1,46 +1,42 @@
 import React from "react";
 import Link from "next/link";
 import RegistrationForm from "./components/RegistrationForm";
+import SomethingWentWrong from "@/core/components/errors/SomethingWentWrong";
 import { redirect } from "next/navigation";
 import { getCachedData } from "@/api/auth";
-import { serverAPI } from "@/lib/axios.server";
+import { serverAPI } from "@/core/axios/axios.server";
+import { flowMap } from "./util/form.util";
 
 const RegistrationPage = async ({ searchParams }) => {
-  //implement data persitence here
-
-  //if identity is not clean, display something went wrong try again
-
-  // on try again, just trigger another session
-
-  const { identity, flow } = searchParams;
+  let { identity, flow } = searchParams;
+  flow = flow in flowMap ? flow : "accountType";
 
   const res = await serverAPI(
-    (headers) => getCachedData({ identity, flow }, { headers }),
+    (headers) => getCachedData({ identity }, { headers }),
     process.env.NEXT_PUBLIC_TOKEN
   );
 
-  console.log(res);
-
-  if (!res.ok) {
-    return <>error</>;
+  //should only happen in an unexpected error
+  if (!res.ok || !res.payload || !res.payload?.registration || res.payload?.error) {
+    return <SomethingWentWrong />;
   }
 
-  if (res.error?.status) {
-    return <>error but status is ok</>;
-    //redirect("/error");
+  const { session, payload } = res;
+  const { registration } = payload;
+
+  if (session) {
+    const { createdAt, expiresAt } = session; // UPDATE THE GLOBAL STORE WITH THIS DATA
   }
 
-  const cachedData = res.payload;
-
-  console.log(cachedData);
+  if (payload?.redirect) redirect(`/signup?identity=${registration?.identity}&flow=${flow}`);
 
   return (
     <div className="main-container flex items-center justify-center">
       <div className="w-full md:w-[700px] flex flex-col justify-center items-center gap-4">
-        <RegistrationForm cachedData={cachedData} />
+        <RegistrationForm />
         <div className="w-full flex items-center">
           <div className="text-body-sm flex gap-1">
-            <span className="text-body-sm">Already have an account?</span>
+            <span className="text-body-sm ">Already have an account?</span>
             <Link href={"/login"} className="font-bold btn-primary-transparent">
               Login
             </Link>

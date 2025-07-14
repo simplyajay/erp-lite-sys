@@ -3,7 +3,7 @@ import { getSupplier } from "@/api/supplier";
 //import { getGeoData } from "@/utils/bussinessEntityForm.util";
 import SupplierDetails from "./components/SupplierDetails";
 import { getDocumentsByEntity } from "@/api/documents";
-import { serverAPI } from "@/lib/axios.server";
+import { serverAPI } from "@/core/axios/axios.server";
 export const metadata = {
   robots: "noindex, nofollow", // Prevent search engines from indexing this page
   title: "Suppliers | Detail",

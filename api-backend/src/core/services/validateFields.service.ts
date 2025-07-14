@@ -1,9 +1,9 @@
-import userService from "../../modules/entities/user/user.service.js";
+//import userService from "../../modules/entities/user/user.repository.js";
 import organizationService from "../../modules/entities/organization/organization.service.js";
 import createError from "http-errors";
 import { Filter } from "bad-words";
 
-export const validateUniqueness = async (entity = null, payload) => {
+export const validateUniqueness = async (entity: string, payload: Record<string, any>) => {
   if (!["user", "organization"].includes(entity)) {
     console.error("Unknown entity: ", entity);
     return;

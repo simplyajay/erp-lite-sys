@@ -1,10 +1,10 @@
 "use client";
 import React, { useRef } from "react";
-import TableLayout from "@/components/table/TableLayout";
-import TableInfo from "@/components/table/TableInfo";
-import TableNew from "@/components/table/Table";
-import Pagination from "@/components/table/Pagination";
-import { useTableHandler } from "@/components/table/hooks/useTableHandler";
+import TableLayout from "@/core/components/table/TableLayout";
+import TableInfo from "@/core/components/table/TableInfo";
+import TableNew from "@/core/components/table/Table";
+import Pagination from "@/core/components/table/Pagination";
+import { useTableHandler } from "@/core/components/table/hooks/useTableHandler";
 import { getStockTableColumns } from "../config/table.config";
 
 const StockTable = ({ state, updateState, fetchProduct }) => {

@@ -1,5 +1,5 @@
-import api from "@/lib/axios";
-import { handleResponse } from "@/lib/api.service";
+import api from "@/core/axios/axios";
+import { handleResponse } from "@/core/axios/api.service";
 
 export const signIn = async (payload = {}, config = {}) => {
   return await handleResponse(api.post("api/auth/login", payload, config));
@@ -10,15 +10,15 @@ export const endSession = async (config = {}) => {
 };
 
 export const startPublicSession = async (payload = {}, config = {}) => {
-  return await handleResponse(api.post("api/auth/public-session-init"), payload, config);
+  return await handleResponse(api.post("api/auth/public-session-init", payload, config));
 };
 
 export const validateRegistrationStep = async (payload = {}, config = {}) => {
   return await handleResponse(api.post(`api/auth/validate-register`, payload, config));
 };
 
-export const generateRegSessionId = async (payload = {}, config = {}) => {
-  return await handleResponse(api.post(`api/auth/registration-session/init`, payload, config));
+export const startRegistrationSession = async (config = {}) => {
+  return await handleResponse(api.get(`api/auth/registration-session/init`, config));
 };
 
 export const validateRegSessionId = async (payload = {}, config = {}) => {
