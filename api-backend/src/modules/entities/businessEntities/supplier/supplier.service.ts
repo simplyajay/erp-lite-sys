@@ -1,4 +1,4 @@
-import ModelRepository from "../../../repositories/model.repository.js";
+import ModelRepository from "../../../repositories/base.repository.js";
 import BusinessEntity from "../businessEntity.model.js";
 
 class SupplierService {

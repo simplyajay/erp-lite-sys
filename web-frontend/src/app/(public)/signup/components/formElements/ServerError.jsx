@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CloseThick } from "@/components/icons/Icons";
+import { CloseThick } from "@/core/components/icons/Icons";
 
 const ServerError = ({ error, handleClose }) => {
   const [showButton, setShowButton] = useState(false);

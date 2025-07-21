@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from "@/components/icons/Icons";
+import { ExternalLinkIcon } from "@/core/components/icons/Icons";
 import { formatDate } from "../util/table.util";
 import { formatDocument } from "../util/table.util";
 import { formatAmount } from "../util/table.util";

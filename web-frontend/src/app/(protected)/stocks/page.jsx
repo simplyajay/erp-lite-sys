@@ -1,7 +1,7 @@
 import React from "react";
 import Stocks from "./components/Stocks";
 import { getProducts } from "@/api/products";
-import { serverAPI } from "@/lib/axios.server";
+import { serverAPI } from "@/core/axios/axios.server";
 
 export const metadata = {
   robots: "noindex, nofollow", // Prevent search engines from indexing this page

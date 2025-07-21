@@ -1,35 +1,45 @@
 import jwt from "jsonwebtoken";
+import { IClearCookie, ICookie, IJWTDecodedUser } from "../services/services";
+import { CookieOptions } from "express";
+import { ONE_HOUR_MS } from "@/modules/auth/session/auth.session";
 
-export const createCookie = (key, value, options) => ({
-  key,
+export const createCookie = (
+  name: string,
+  value: string,
+  options?: Partial<CookieOptions>
+): ICookie => ({
+  name,
   value,
-  options: options || {
+  options: {
     httpOnly: true,
-    maxAge: 30 * 60 * 1000,
+    maxAge: ONE_HOUR_MS,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    ...options,
+    path: "/",
+    ...(options || {}),
   },
 });
 
-export const createClearCookie = (key, options = {}) => ({
-  key,
+export const createClearCookie = (
+  name: string,
+  options?: Partial<CookieOptions>
+): IClearCookie => ({
+  name,
   options: {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    ...options,
+    ...(options || {}),
   },
 });
 
-export const generateAuthCookies = (user) => {
-  const tokenPayload = {
-    _id: user._id,
-    ...(user._orgId && { _orgId: user._orgId }),
-  };
+export const generateAuthCookies = (user: IJWTDecodedUser) => {
+  const key = process.env.JWT_SECRET;
 
-  const token = jwt.sign(tokenPayload, process.env.JWT_SECRET);
+  if (!key) throw new Error("JWT_SECRET is not defined");
+
+  const token = jwt.sign(user, key);
 
   return [createCookie("auth_token", token)];
 };

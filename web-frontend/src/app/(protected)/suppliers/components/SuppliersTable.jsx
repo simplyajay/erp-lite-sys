@@ -1,11 +1,11 @@
 "use client";
 import React, { useRef } from "react";
-import Table from "@/components/table/Table";
-import Pagination from "@/components/table/Pagination";
-import TableInfo from "@/components/table/TableInfo";
-import TableLayout from "@/components/table/TableLayout";
+import Table from "@/core/components/table/Table";
+import Pagination from "@/core/components/table/Pagination";
+import TableInfo from "@/core/components/table/TableInfo";
+import TableLayout from "@/core/components/table/TableLayout";
 import { useRouter } from "next/navigation";
-import { useTableHandler } from "@/components/table/hooks/useTableHandler";
+import { useTableHandler } from "@/core/components/table/hooks/useTableHandler";
 import { getSuppliersTableColumns } from "../config/table.config";
 
 const SuppliersTable = ({ state, updateState, fetchSuppliers }) => {

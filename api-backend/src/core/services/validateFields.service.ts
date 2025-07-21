@@ -1,42 +1,49 @@
-import userService from "../../modules/entities/user/user.service.js";
-import organizationService from "../../modules/entities/organization/organization.service.js";
-import createError from "http-errors";
+import BaseRepository from "@/modules/repositories/base.repository.js";
+import { User, Organization, Product, BusinessEntity } from "@prisma/client";
 import { Filter } from "bad-words";
+import { ExpectedError, IPayloadError } from "./services.js";
 
-export const validateUniqueness = async (entity = null, payload) => {
-  if (!["user", "organization"].includes(entity)) {
-    console.error("Unknown entity: ", entity);
-    return;
-  }
+const isFieldTaken = async (
+  service: BaseRepository<User | Organization | Product | BusinessEntity>,
+  field: string,
+  value: string
+): Promise<{ isTaken: boolean }> => {
+  if (!field) throw new Error("Field is undefined");
 
+  const target = await service.findUnique(field, value);
+
+  if (target) return { isTaken: true };
+
+  return { isTaken: false };
+};
+
+export const validateUniqueness = async (
+  service: BaseRepository<User | Organization | Product | BusinessEntity>,
+  payload: Record<string, unknown>
+): Promise<void> => {
   const fieldsToValidate = ["username", "email"];
-  const service = entity === "organization" ? organizationService : userService;
 
   for (const field of fieldsToValidate) {
-    if (!payload?.[field]) continue;
-
     const value = payload[field];
 
-    const exists = await service.fieldExists(field, value);
+    if (typeof value !== "string" || !value.trim()) continue;
 
-    if (exists) {
-      const error = createError(409, `This ${field} is already taken.`);
-      error.keyValue = { [field]: value };
-      throw error;
+    const { isTaken } = await isFieldTaken(service, field, value);
+
+    if (isTaken) {
+      throw new ExpectedError(422, `This ${field} is already taken.`, field);
     }
   }
 };
 
-export const validateProfanity = async (payload) => {
+export const validateProfanity = async (payload: Record<string, unknown>): Promise<void> => {
   const filter = new Filter();
 
   for (const [field, value] of Object.entries(payload)) {
     if (typeof value !== "string" || !value.trim()) continue;
 
     if (filter.isProfane(value)) {
-      const error = createError(422, `Profanity is not allowed.`);
-      error.keyValue = { [field]: value };
-      throw error;
+      throw new ExpectedError(422, `Profanity is not Allowed.`, field);
     }
   }
 };

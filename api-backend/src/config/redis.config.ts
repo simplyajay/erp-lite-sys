@@ -1,21 +1,25 @@
-import Redis from "ioredis";
+import Redis, { Redis as RedisClient } from "ioredis";
 import envConfig from "./env.config.js";
 
 class RedisConfig {
+  private redis: RedisClient | null;
+  private connected: boolean;
+  private connecting: boolean;
+
   constructor() {
     this.redis = null;
     this.connected = false;
     this.connecting = false;
   }
 
-  async connect() {
+  async connect(): Promise<void> {
     if (this.connected || this.connecting) return;
 
     this.connecting = true;
 
     this.redis = new Redis({
       host: envConfig.get("REDIS_HOST"),
-      port: envConfig.get("REDIS_PORT"),
+      port: Number(envConfig.get("REDIS_PORT")),
       connectTimeout: 1500,
       retryStrategy: () => null, //im controlling retry
     });
@@ -31,8 +35,10 @@ class RedisConfig {
 
     return new Promise((resolve, reject) => {
       const cleanup = () => {
-        this.redis.off("ready", onReady);
-        this.redis.off("error", onError);
+        if (this.redis) {
+          this.redis.off("ready", onReady);
+          this.redis.off("error", onError);
+        }
       };
 
       const onReady = () => {
@@ -43,7 +49,7 @@ class RedisConfig {
         cleanup();
       };
 
-      const onError = (error) => {
+      const onError = (error: Error) => {
         this.connected = false;
         this.connecting = false;
         console.log("Redis Connection Failed");
@@ -51,16 +57,18 @@ class RedisConfig {
         cleanup();
       };
 
-      this.redis.once("ready", onReady);
-      this.redis.once("error", onError);
+      if (this.redis) {
+        this.redis.once("ready", onReady);
+        this.redis.once("error", onError);
+      }
     });
   }
 
-  isConnected() {
+  isConnected(): boolean {
     return this.connected;
   }
 
-  getClient() {
+  getClient(): RedisClient | null {
     return this.redis;
   }
 }

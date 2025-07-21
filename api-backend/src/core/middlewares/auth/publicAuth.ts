@@ -1,22 +1,27 @@
-import envConfig from "../../../config/env.config.js";
+import envConfig from "@/config/env.config.js";
 import { nanoid } from "nanoid";
-import { extractAuthToken } from "../../services/token.service.js";
+import { extractAuthToken } from "@/core/services/token.service.js";
+import { Request, Response, NextFunction } from "express";
+import { FIVE_MINS_MS } from "@/modules/auth/session/auth.session";
 
-const publicAuth = (req, res, next) => {
+const publicAuth = (req: Request, res: Response, next: NextFunction): void | Promise<void> => {
   const name = envConfig.get("PUBLIC_TOKEN");
-  const token = extractAuthToken(req, name);
 
-  if (!token) {
-    const token = nanoid(64);
-    res.cookie(name, token, {
+  if (!name) throw new Error("PUBLIC_TOKEN is not defined");
+  let sid = extractAuthToken(req, name);
+
+  //if cookie is not set in the frontend for some reason; less likely to happen since cookies are set in frontend middleware
+  if (!sid) {
+    sid = nanoid(64);
+    res.cookie(name, sid, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 20 * 60 * 1000, //20 mins
+      maxAge: FIVE_MINS_MS,
     });
   }
 
-  req.publicToken = token;
+  req.publicToken = sid;
 
   next();
 };

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import StockTable from "./StockTable";
 import StockForm from "../common/StockForm";
-import FormDialog from "@/components/dialogs/FormDialog";
+import FormDialog from "@/core/components/dialogs/FormDialog";
 import { useStocks } from "../hooks/useTableStocks";
 import { getProducts } from "@/api/products";
 

@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
-import CardButton from "@/components/button/CardButton";
-import { SingleUserIcon, MultiUserIcon } from "@/components/icons/Icons";
+import CardButton from "@/core/components/button/CardButton";
+import { SingleUserIcon, MultiUserIcon } from "@/core/components/icons/Icons";
 import { motion } from "framer-motion";
-import { fadeTransitionv1 } from "@/components/motion/transitions";
+import { fadeTransitionv1 } from "@/core/components/motion/transitions";
 import { useFormContext } from "react-hook-form";
 import { useWatch } from "react-hook-form";
 

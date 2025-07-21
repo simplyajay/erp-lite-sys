@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from "@/components/icons/Icons";
+import { ExternalLinkIcon } from "@/core/components/icons/Icons";
 
 export const getStockTableColumns = ({ handleEdit }) => [
   { key: "sku", head: "SKU", sortable: true, body: (row) => row.sku },

@@ -1,43 +1,63 @@
-import ModelRepository from "../../repositories/model.repository.js";
-import User from "./user.model.js";
-import { hashPassword } from "../../../core/services/hash.service.js";
+import BaseRepository from "@/modules/repositories/base.repository";
+import { User, Product, Document, DocumentProduct, Prisma } from "@prisma/client";
+import { IUser } from "./user";
+import { IServiceResponse } from "@/core/services/services";
+import { Request } from "express";
+import { hashPassword } from "@/core/services/hash.service";
+import { toIProduct } from "../product/product.service";
+import { toIDocument } from "../documents/document.service";
 
-class UserService {
+export default class UserService extends BaseRepository<
+  User,
+  Prisma.UserCreateInput,
+  Prisma.UserUpdateInput
+> {
   constructor() {
-    this.userRepository = new ModelRepository(User);
-  }
-  async registerUser(req) {
-    const { password, ...rest } = req.body;
-    const hashedPassword = await hashPassword(password);
-    return await this.userRepository.create({ password: hashedPassword, ...rest });
+    super("user");
   }
 
-  async findAllUsers() {
-    return await this.userRepository.findAll(null, { password: 0 });
+  async register(
+    req: Request<any, any, Prisma.UserCreateInput>
+  ): Promise<IServiceResponse<{ registrationSucess: boolean }>> {
+    const user = req.body;
+
+    const hashedPassword = await hashPassword(user.password);
+
+    const newUser = { ...user, password: hashedPassword };
+
+    await this.create(newUser);
+
+    return { payload: { registrationSucess: true } };
   }
 
-  async findUserById(req) {
-    const { id } = req.params;
-    return await this.userRepository.findById(id, { password: 0 }); //exclude password
-  }
-
-  async findUserByIdentifier(req) {
-    const { identifier } = req.body || {};
-    return await this.userRepository.findOne({
-      $or: [{ username: identifier }, { email: identifier }],
-    });
-  }
-
-  async findCurrentUser(req) {
+  async currentUser(req: Request): Promise<IServiceResponse<IUser | undefined>> {
     const { _id } = req.user;
-    return await this.userRepository.findById(_id, { password: 0 });
-  }
 
-  async fieldExists(field, value) {
-    if (field) return await this.userRepository.doesExist(field, value);
+    const user = await this.findOne(_id);
 
-    return false;
+    if (!user) return { payload: undefined };
+
+    const currentUser = toIUser(user);
+
+    return { payload: currentUser };
   }
 }
 
-export default new UserService();
+export const toIUser = (
+  user: User & { products?: Product[]; documents?: (Document & { products: DocumentProduct[] })[] }
+): IUser => {
+  return {
+    id: user.id,
+    orgId: user.orgId ?? null,
+    products: user.products?.map(toIProduct) ?? null,
+    documents: user.documents?.map(toIDocument) ?? null,
+    username: user.username,
+    firstname: user.firstname,
+    middlename: user.middlename ?? null,
+    lastname: user.lastname,
+    email: user.email,
+    phone: user.phone ?? null,
+    image: user.image ?? null,
+    role: user.role,
+  };
+};
