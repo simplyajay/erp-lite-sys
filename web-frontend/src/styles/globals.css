@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "react-toastify/dist/ReactToastify.css";
 @import "react-loading-skeleton/dist/skeleton.css";
-@import "./fonts.scss";
+@import "./fonts.css";
 
 :root {
   color: var(--foreground);

@@ -1,7 +1,7 @@
 import BaseRepository from "@/modules/repositories/base.repository.js";
 import { User, Organization, Product, BusinessEntity } from "@prisma/client";
 import { Filter } from "bad-words";
-import { ExpectedError, IPayloadError } from "./services.js";
+import { ExpectedError } from "./services.js";
 
 const isFieldTaken = async (
   service: BaseRepository<User | Organization | Product | BusinessEntity>,

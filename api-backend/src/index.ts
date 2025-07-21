@@ -19,9 +19,11 @@ app.use(
 );
 
 const startServer = async () => {
-  await dbConfig.connect();
+  //await dbConfig.connect();
 
-  if (dbConfig.isConnected()) {
+  const dbconnected = true;
+
+  if (dbconnected) {
     registerRoutes(app);
     await redisConfig.connect();
     app.listen(backendPort, "0.0.0.0", () => {

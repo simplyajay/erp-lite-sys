@@ -6,14 +6,15 @@ import { redirect } from "next/navigation";
 import { getCachedData } from "@/api/auth";
 import { serverAPI } from "@/core/axios/axios.server";
 import { flowMap } from "./util/form.util";
+import { headers } from "next/headers";
 
 const RegistrationPage = async ({ searchParams }) => {
-  let { identity, flow } = searchParams;
+  let { identity, flow } = await searchParams;
   flow = flow in flowMap ? flow : "accountType";
 
   const res = await serverAPI(
     (headers) => getCachedData({ identity }, { headers }),
-    process.env.NEXT_PUBLIC_TOKEN
+    process.env.GUEST
   );
 
   //should only happen in an unexpected error

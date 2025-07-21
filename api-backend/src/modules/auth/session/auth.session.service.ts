@@ -2,7 +2,7 @@
 import envConfig from "../../../config/env.config.js";
 import { comparePassword } from "../../../core/services/hash.service.js";
 import {
-  generateAuthCookies,
+  generateSignedCookie,
   createClearCookie,
   createCookie,
 } from "../../../core/utils/cookie.util.js";
@@ -39,22 +39,28 @@ class AuthSessionService {
 
     if (!match) return;
 
-    const cookies = generateAuthCookies({ _id: user.id, _orgId: user?.orgId });
+    const cookies = generateSignedCookie({ _id: user.id, _orgId: user?.orgId });
 
     return { payload: { isLoggedIn: true }, cookies };
   }
 
   async logout(): Promise<IServiceResponse<{ isLoggedIn: boolean }> | void> {
-    const cookie = createClearCookie("auth_token");
+    const cookieName = envConfig.get("AUTH");
+    if (!cookieName) {
+      console.error("cookie name is not defined @session.service.ts line 50");
+      throw new Error("CookieName is not defined");
+    }
+
+    const cookie = createClearCookie(cookieName);
     return { payload: { isLoggedIn: false }, clearCookies: [cookie] };
   }
 
   async publicSessionInit(
     req: Request<any, any, { sid: string; _createdAt: number }>
   ): Promise<IServiceResponse<{ sessionActive: boolean }>> {
-    const name = envConfig.get("PUBLIC_TOKEN");
+    const name = envConfig.get("GUEST");
 
-    if (!name) throw new Error("PUBLIC_TOKEN is not defined"); // handle in frontend TRY AGAIN LATER
+    if (!name) throw new Error("GUEST is not defined"); // handle in frontend TRY AGAIN LATER
 
     let { sid, _createdAt } = req.body;
 
@@ -67,6 +73,8 @@ class AuthSessionService {
       _createdAt,
       _updatedAt: _createdAt,
     });
+
+    console.log("session initiated @publicSessionInit.ts");
 
     return { payload: { sessionActive: true } };
   }

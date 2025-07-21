@@ -12,7 +12,7 @@ import {
 } from "./auth.registration.js";
 import { IPublicSession } from "../session/auth.session.js";
 
-const name = envConfig.get("PUBLIC_TOKEN");
+const cookieName = envConfig.get("GUEST");
 
 export const exportRegSessionData = async (
   req: Request<any, any, { identity: string }>
@@ -23,12 +23,12 @@ export const exportRegSessionData = async (
   const sid = req.publicToken;
   const { identity } = req.body;
 
-  if (!sid || !name) {
-    console.error("SID or Name is not defined @registration.ts @overwriteRegistration");
-    throw new Error("PUBLIC_TOKEN or SID is not defined");
+  if (!sid || !cookieName) {
+    console.error("SID or cookieName is not defined @registration.ts @overwriteRegistration");
+    throw new Error("Cookie Name or SID is not defined");
   }
 
-  const redisKey = `${name}==${sid}`;
+  const redisKey = `${cookieName}==${sid}`;
   const currentSession = await redisService.getJSON<IPublicSession>(redisKey);
 
   if (!currentSession) {
@@ -38,13 +38,13 @@ export const exportRegSessionData = async (
 
   if (!currentSession.registration || !identity || identity === "undefined") {
     const { registration, sessionData, cookie } = await overwriteRegistration({
-      name,
+      name: cookieName,
       sid,
       currentSession,
     });
 
     return {
-      payload: { registration, redirect: true },
+      payload: { registration, redirect: !identity ? true : false },
       session: { isValid: true, data: sessionData },
       ...(cookie && { cookies: [cookie] }), // only inject the cookie if it exists which it should in this case
     };
@@ -66,7 +66,7 @@ export const validateCurrentStep = async (
   try {
     const sid = req.publicToken;
 
-    if (!sid || !name) {
+    if (!sid || !cookieName) {
       console.error("SID or Name is not defined @registration.ts @overwriteRegistration");
       throw new Error("PUBLIC_TOKEN or SID is not defined");
     }
@@ -107,7 +107,7 @@ export const validateCurrentStep = async (
     }
 
     const { registration, sessionData, cookie } = await overwriteRegistration({
-      name,
+      name: cookieName,
       sid,
       currentSession,
       overwrite: { flow, payload: data },
