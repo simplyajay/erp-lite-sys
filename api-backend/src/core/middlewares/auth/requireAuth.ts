@@ -1,10 +1,11 @@
+import envConfig from "@/config/env.config";
 import { extractAuthToken, verifyAuthToken } from "@/core/services/token.service.js";
 import { Request, Response, NextFunction } from "express";
 
 const requireAuth = (req: Request, res: Response, next: NextFunction): void | Promise<void> => {
-  const key = process.env.AUTH_TOKEN;
-  if (!key) throw new Error("AUTH_TOKEN is not defined");
-  const sid = extractAuthToken(req, key);
+  const cookieName = envConfig.get("AUTH");
+  if (!cookieName) throw new Error("AUTH is not defined");
+  const sid = extractAuthToken(req, cookieName);
 
   if (!sid) {
     res.status(401).json({ ok: false, data: null, message: "Unauthorized. No token provided" });

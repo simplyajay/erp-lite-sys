@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { IClearCookie, ICookie, IJWTDecodedUser } from "../services/services";
 import { CookieOptions } from "express";
 import { ONE_HOUR_MS } from "@/modules/auth/session/auth.session";
+import envConfig from "@/config/env.config";
 
 export const createCookie = (
   name: string,
@@ -34,12 +35,19 @@ export const createClearCookie = (
   },
 });
 
-export const generateAuthCookies = (user: IJWTDecodedUser) => {
-  const key = process.env.JWT_SECRET;
+export const generateSignedCookie = (user: IJWTDecodedUser) => {
+  const secretKey = envConfig.get("JWT_SECRET");
 
-  if (!key) throw new Error("JWT_SECRET is not defined");
+  if (!secretKey) throw new Error("JWT_SECRET is not defined");
 
-  const token = jwt.sign(user, key);
+  const token = jwt.sign(user, secretKey);
 
-  return [createCookie("auth_token", token)];
+  const cookieName = envConfig.get("AUTH");
+
+  if (!cookieName) {
+    console.error("cookie name is not defined @cookie.util.ts line 49");
+    throw new Error("Cookie name is not defined");
+  }
+
+  return [createCookie(cookieName, token)];
 };

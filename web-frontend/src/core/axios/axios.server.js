@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
 export const serverAPI = async (requestFn, env) => {
-  const token = cookies().get(env)?.value; //inject public_token
+  const token = (await cookies()).get(env)?.value; //inject public_token
 
   const headers = {};
 

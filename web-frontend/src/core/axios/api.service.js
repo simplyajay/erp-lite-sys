@@ -7,9 +7,12 @@ export const handleResponse = async (axiosPromise) => {
   } catch (error) {
     const res = error.response;
 
+    console.log(error);
+
     if (!res) {
-      return { status: 500, ok: false, message: "Network Error", data: null };
+      return { status: 500, ok: false, message: "Network Error", payload: null };
     }
-    return { status: res.status, ...res.data };
+
+    return { status: res.status, ok: true, message: "Unkown Error", ...res.payload };
   }
 };

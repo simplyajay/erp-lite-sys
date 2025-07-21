@@ -13,8 +13,8 @@ const protectedRoutes = [
   "/suppliers",
 ];
 
-const PUBLIC_COOKIE_NAME = process.env.NEXT_PUBLIC_TOKEN;
-const AUTH_COOKIE_NAME = process.env.NEXT_PUBLIC_AUTH_TOKEN;
+const PUBLIC_COOKIE_NAME = process.env.GUEST;
+const AUTH_COOKIE_NAME = process.env.AUTH;
 
 export const middleware = async (req) => {
   const { pathname } = req.nextUrl;
@@ -37,7 +37,7 @@ export const middleware = async (req) => {
     console.log("createdAt: ", _createdAt);
     const backendRes = await startPublicSession({ sid, _createdAt });
 
-    if (!backendRes.ok) throw new Error("Public Token Error");
+    // if (!backendRes.ok) throw new Error("Public Token Error");
   }
 
   const isCurrentRouteProtected = protectedRoutes.some((route) => pathname.startsWith(route));
@@ -49,6 +49,11 @@ export const middleware = async (req) => {
   if (authToken && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
+
+  const url = new URL(req.url);
+
+  res.headers.set("x-pathname", url.pathname);
+  res.headers.set("x-search", url.searchParams.toString());
 
   return res;
 };

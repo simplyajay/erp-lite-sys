@@ -39,7 +39,7 @@
     "@types/express": "^5.0.3",
     "@types/ioredis": "^4.28.10",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^24.0.1",
+    "@types/node": "^24.0.15",
     "@types/zxcvbn": "^4.4.5",
     "cross-env": "^7.0.3",
     "dotenv-cli": "^8.0.0",
