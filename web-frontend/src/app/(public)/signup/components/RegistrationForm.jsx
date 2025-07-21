@@ -13,15 +13,19 @@ import StepIndicator from "./formElements/StepIndicator";
 import useRegistration from "../hooks/useRegistration";
 import LoadingBar from "./formElements/LoadingBar";
 import useRegistrationUiStore from "@/store/useRegistration";
+import SomethingWentWrong from "@/core/components/errors/SomethingWentWrong";
 
 const RegistrationForm = () => {
   const searchParams = useSearchParams();
-
   const currentFlow = searchParams.get("flow");
 
   const { currentStep, handleFormSubmit, handleNext, formMethods } = useRegistration();
 
-  const { loading, setLoading, flow, setFlow } = useRegistrationUiStore((state) => state);
+  const { loading, setLoading, flow, setFlow, currentError } = useRegistrationUiStore(
+    (state) => state
+  );
+
+  if (currentError?.status) return <SomethingWentWrong />; // make another component for this
 
   const { getValues, handleSubmit } = formMethods;
 

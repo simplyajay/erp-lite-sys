@@ -1,15 +1,17 @@
-import { useRegistrationSubmit } from "./useRegistrationFlow";
+import { useRegistrationFlow } from "./useRegistrationFlow";
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getValidationSchema } from "../util/form.util";
 import { scrollToTop } from "@/core/utils/scroll";
+import { useRouter } from "next/navigation";
 import useRegistrationStore from "@/store/useRegistration";
 
 const useRegistration = () => {
   const { setLoading, removeCurrentError, flow, setFlow } = useRegistrationStore((state) => state);
   const previousAccountTypeRef = useRef(null);
   const previousFlow = useRef(null);
+  const router = useRouter();
 
   const validationSchema = getValidationSchema(flow);
 
@@ -24,7 +26,7 @@ const useRegistration = () => {
 
   const accountType = getValues("accountType");
 
-  const { handleValidate, handleRegister, handleNext } = useRegistrationSubmit({
+  const { handleValidate, handleRegister, handleNext } = useRegistrationFlow({
     formMethods,
     flow,
   });
@@ -60,9 +62,15 @@ const useRegistration = () => {
       if (flow === "confirmed") handleRegister();
 
       const validator = await handleValidate();
+
+      if (!validator.ok) console.log("Validation error");
+
       if (validator.ok) {
-        const nextFlow = validator.flow;
-        handleNext(nextFlow);
+        const { isFormValid } = validator;
+        if (isFormValid) {
+          const nextFlow = validator.flow;
+          handleNext(nextFlow);
+        }
       }
 
       setLoading(false);

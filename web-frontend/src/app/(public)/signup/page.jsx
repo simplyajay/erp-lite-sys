@@ -24,8 +24,8 @@ const RegistrationPage = async ({ searchParams }) => {
   const { session, payload } = res;
   const { registration } = payload;
 
-  if (session) {
-    const { createdAt, expiresAt } = session; // UPDATE THE GLOBAL STORE WITH THIS DATA
+  if (session && session.isValid) {
+    const { createdAt, expiresAt } = session.data; // UPDATE THE GLOBAL STORE WITH THIS DATA
   }
 
   if (payload?.redirect) redirect(`/signup?identity=${registration?.identity}&flow=${flow}`);

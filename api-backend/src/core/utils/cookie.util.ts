@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { IClearCookie, ICookie, IJWTDecodedUser } from "../services/services";
 import { CookieOptions } from "express";
-import { ONE_HOUR_MS } from "@/modules/auth/auth";
+import { ONE_HOUR_MS } from "@/modules/auth/session/auth.session";
 
 export const createCookie = (
   name: string,

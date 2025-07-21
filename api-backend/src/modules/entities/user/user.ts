@@ -15,7 +15,3 @@ export interface IUser {
   image: string | null;
   role: string;
 }
-
-export interface ICreateUser extends IUser {
-  password: string;
-}

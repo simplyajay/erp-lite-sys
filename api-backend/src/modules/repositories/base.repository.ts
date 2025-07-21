@@ -24,7 +24,7 @@ export default class BaseRepository<T, C = any, U = any> {
     }
   }
 
-  async findUnique(field: string, value: any): Promise<boolean> {
+  async findUnique(field: string, value: any): Promise<T | null> {
     try {
       return this.model.findUnique({ where: { [field]: value } });
     } catch (error) {
@@ -40,7 +40,7 @@ export default class BaseRepository<T, C = any, U = any> {
     }
   }
 
-  async findByIdentifier(identifier: string): Promise<T> {
+  async findByIdentifier(identifier: string): Promise<T | null> {
     try {
       return this.model.findFirst({
         where: {
@@ -67,75 +67,4 @@ export default class BaseRepository<T, C = any, U = any> {
       throw error;
     }
   }
-
-  /*
-  
-    async findAllWithFilter(target: any, queryParams: any, searchableFields: any) {
-    try {
-      const keyword = queryParams?.keyword;
-      const filter = QueryService.getFilter(target, queryParams, searchableFields);
-      const sort = QueryService.getSort(queryParams) as Record<string, 1 | -1>;
-
-      const sortKeys = Object.keys(sort) as (keyof typeof sort)[]; // sort by
-      const by = sortKeys[0];
-      const order = sort[by] === 1 ? "asc" : "desc"; // sort order
-
-      const { page, limit, skip } = QueryService.getPagination(queryParams);
-
-      const items = await this.model
-        .find(filter)
-        .sort(sort)
-        .collation({ locale: "en", strength: 1 }) // case-insensitive sorting
-        .limit(limit)
-        .skip(skip);
-      const totalItems = await this.model.countDocuments(filter);
-      const totalPages = Math.max(1, Math.ceil(totalItems / limit));
-
-      return { items, totalItems, page, totalPages, sort: { by, order }, keyword };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async findById(id: string, projection = {}) {
-    try {
-      return await this.model.findById(id, projection).lean();
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async doesExist(key: string, value: string) {
-    try {
-      return await this.model.exists({ [key]: value.toLowerCase() } as Record<string, any>);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async updateById(id: string, updateData: {}, options = {}) {
-    try {
-      return await this.model.findByIdAndUpdate(id, updateData, options);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async deleteById(id: string) {
-    try {
-      return await this.model.findByIdAndDelete(id);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getCount(options = {}) {
-    try {
-      return await this.model.countDocuments(options);
-    } catch (error) {
-      throw error;
-    }
-  }
-  
-  */
 }

@@ -7,7 +7,7 @@ const routeMap = [
   { path: "/documents", auth: true },
   { path: "/purchase", auth: true },
   { path: "/stocks", auth: true },
-  { path: "/suppleirs", auth: true },
+  { path: "/suppliers", auth: true },
 ];
 
 export const getRoute = (pathname) => {

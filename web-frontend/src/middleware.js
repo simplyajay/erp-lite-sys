@@ -31,9 +31,10 @@ export const middleware = async (req) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 10 * 60 * 1000, //10 mins
+      maxAge: 5 * 60 * 1000,
     });
 
+    console.log("createdAt: ", _createdAt);
     const backendRes = await startPublicSession({ sid, _createdAt });
 
     if (!backendRes.ok) throw new Error("Public Token Error");

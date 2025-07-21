@@ -1,5 +1,5 @@
-import { handleResponse } from "@/core/services/api.service";
 import sessionService from "./auth.session.service";
+import { handleResponse } from "@/core/services/api.service";
 import { Request, Response } from "express";
 
 export const authenticateLogin = async (req: Request, res: Response): Promise<void> => {

@@ -1,11 +1,33 @@
 import "express";
 import { CookieOptions, Response } from "express";
+import { ISessionResponse } from "@/modules/auth/session/auth.session";
+
+// use this to throw field errors
+export class ExpectedError extends Error {
+  status: number;
+  key?: string;
+  code?: string;
+
+  constructor(status: number, message: string, key?: string, code?: string) {
+    super(message);
+    this.status = status;
+    this.key = key;
+    this.code = code;
+  }
+}
+
+export interface IExpectedError {
+  status: number;
+  message: string;
+  code?: string;
+  key?: string;
+}
 
 export interface IServiceResponse<T> {
   cookies?: Array<ICookie>;
   clearCookies?: Array<IClearCookie>;
-  session?: { name: string; createdAt: number; expiresAt: number };
-  payload: T;
+  session?: ISessionResponse;
+  payload: T & { error?: IExpectedError };
 }
 
 export interface IResponseHandler<T> {
@@ -18,7 +40,7 @@ export interface IResponseHandler<T> {
 export interface IResponse<T> {
   ok: boolean;
   payload: T;
-  session?: { createdAt: number; expiresAt: number };
+  session?: ISessionResponse;
   message: string;
 }
 
@@ -31,13 +53,6 @@ export interface ICookie {
 export interface IClearCookie {
   name: string;
   options?: CookieOptions;
-}
-
-export interface IPayloadError {
-  status: number;
-  message: string;
-  code?: string;
-  keyValue?: Record<string, any>;
 }
 
 export interface IJWTDecodedUser {

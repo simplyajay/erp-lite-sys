@@ -1,7 +1,7 @@
 import { handleFormValidation } from "../util/form.service";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export const useRegistrationSubmit = ({ formMethods, flow }) => {
+export const useRegistrationFlow = ({ formMethods, flow }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { getValues, setError } = formMethods;
@@ -21,6 +21,7 @@ export const useRegistrationSubmit = ({ formMethods, flow }) => {
   };
 
   const handleNext = (flow) => {
+    console.log("test");
     if (!flow) {
       console.error("flow not defined");
       return;
@@ -29,7 +30,7 @@ export const useRegistrationSubmit = ({ formMethods, flow }) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("flow", flow);
     const url = `/signup?identity=${params.toString()}`;
-
+    console.log(url);
     router.push(url);
   };
 

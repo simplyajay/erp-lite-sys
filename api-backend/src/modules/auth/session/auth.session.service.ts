@@ -1,19 +1,25 @@
 //import userService from "../entities/user/user.service.js";
-import envConfig from "../../config/env.config.js";
-import { comparePassword } from "../../core/services/hash.service.js";
+import envConfig from "../../../config/env.config.js";
+import { comparePassword } from "../../../core/services/hash.service.js";
 import {
   generateAuthCookies,
   createClearCookie,
   createCookie,
-} from "../../core/utils/cookie.util.js";
+} from "../../../core/utils/cookie.util.js";
 import { Request } from "express";
-import { ILoginReqBody, IPublicSession, TEN_MINS_MS, ISessionDataOptions } from "./auth.js";
+import {
+  ILoginReqBody,
+  IPublicSession,
+  FIVE_MINS_MS,
+  ISetSessionOption,
+  ISessionMetaData,
+} from "./auth.session.js";
 import { ICookie, IServiceResponse } from "@/core/services/services.js";
-import UserService from "../entities/user/user.service.js";
+import UserService from "../../entities/user/user.service.js";
 import redisService from "@/core/services/redis.service.js";
 
 const userService = new UserService();
-const maxAgeInMs = TEN_MINS_MS;
+const maxAgeInMs = FIVE_MINS_MS;
 
 class AuthSessionService {
   async login(
@@ -39,9 +45,8 @@ class AuthSessionService {
   }
 
   async logout(): Promise<IServiceResponse<{ isLoggedIn: boolean }> | void> {
-    const clearCookies = [createClearCookie("auth_token")];
-
-    return { payload: { isLoggedIn: false }, clearCookies };
+    const cookie = createClearCookie("auth_token");
+    return { payload: { isLoggedIn: false }, clearCookies: [cookie] };
   }
 
   async publicSessionInit(
@@ -56,35 +61,53 @@ class AuthSessionService {
     //cookies should be present when calling this function
     if (!sid || !_createdAt) throw new Error("Unexpected Error");
 
-    await this.setSessionData(name, sid, { _createdAt });
+    const { meta } = await this.setSessionData({
+      name,
+      sid,
+      _createdAt,
+      _updatedAt: _createdAt,
+    });
 
     return { payload: { sessionActive: true } };
   }
 
-  async setSessionData(
-    name: string,
-    sid: string,
-    { currentData, overrides = {}, _createdAt, withCookie }: ISessionDataOptions = {}
-  ): Promise<{ cookie?: ICookie; createdAt: number; expiresAt: number }> {
+  async setSessionData({
+    name,
+    sid,
+    _createdAt,
+    _updatedAt,
+    options: { currentData, overrides, refreshCookie } = {},
+  }: ISetSessionOption): Promise<{
+    cookie?: ICookie;
+    meta: ISessionMetaData;
+  }> {
+    //currentData should be passed if overwriting data
+    //overrides is the object/s to override inside currentData
     //always send milliseconds and not seconds
-    const createdAt = _createdAt ?? Date.now();
-    const expiresAt = createdAt + maxAgeInMs;
+    const createdAt = _createdAt ? _createdAt : currentData ? currentData.createdAt : Date.now();
+    const updatedAt = _updatedAt ?? Date.now();
+    const expiresAt = updatedAt + maxAgeInMs;
     const maxAgeInSecs = maxAgeInMs / 1000;
     const redisKey = `${name}==${sid}`;
 
+    //overwrite sub-objects inside session data e.g. registration
     const rest = { ...overrides, createdAt, expiresAt };
 
     const data: IPublicSession = currentData ? { ...currentData, ...rest } : { sid, ...rest };
 
-    await redisService.setJSON<IPublicSession>({
+    //console.log("createdAt from setsession", createdAt);
+    // console.log("updatedAt from setsession", updatedAt);
+    // console.log("expiresAt from setsession", expiresAt);
+
+    const value = await redisService.setJSON<IPublicSession>({
       key: redisKey,
       value: data,
       ttlSeconds: maxAgeInSecs,
     });
 
-    const cookie = withCookie ? createCookie(name, sid, { maxAge: maxAgeInMs }) : undefined;
+    const cookie = refreshCookie ? createCookie(name, sid, { maxAge: maxAgeInMs }) : undefined;
 
-    return { cookie, createdAt, expiresAt };
+    return { cookie, meta: { name, createdAt, updatedAt, expiresAt } };
   }
 }
 

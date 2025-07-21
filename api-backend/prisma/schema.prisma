@@ -117,7 +117,7 @@ model BusinessEntity {
   organization      Organization? @relation(fields: [organizationId], references: [id])
   documents         Document[]
   name              String
-  trn               String        @unique
+  trn               String        @unique //should not be unique because in one database, there can be a lot of users. and multiple users can have the same business entity with the same trn
   description       String?
   note              String?
   defaultMarkup     Decimal?
@@ -139,7 +139,7 @@ model BusinessEntity {
   openBalance       Decimal
   totalOverdue      Decimal
   status            EntityStatus  @default(Active)
-  image             String
+  image             String // should be optional
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 

@@ -6,6 +6,8 @@ export const handleFormValidation = async ({ values = {}, flow, setError }) => {
 
   const res = await validateRegistrationStep(values, { params: { flow } });
 
+  console.log(res);
+
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const entity = flow === "businessInfo" ? "organization" : "user";

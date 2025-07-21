@@ -1,28 +1,26 @@
-import ModelRepository from "../../repositories/base.repository.js";
-import Organization from "./organization.model.js";
+import BaseRepository from "../../repositories/base.repository.js";
+import { Request } from "express";
+import { Organization, Prisma } from "@prisma/client";
+import { IServiceResponse } from "@/core/services/services.js";
 
-class OrganizationService {
+export default class OrganizationService extends BaseRepository<
+  Organization,
+  Prisma.OrganizationCreateInput,
+  Prisma.OrganizationUpdateInput
+> {
   constructor() {
-    this.organizationRepository = new ModelRepository(Organization);
+    super("organization");
   }
 
-  async createOrganization(req) {
+  async register(
+    req: Request<any, any, Prisma.OrganizationCreateInput>
+  ): Promise<IServiceResponse<{ registrationSuccess: boolean }>> {
     const organization = req.body;
-    return await this.organizationRepository.create(organization);
+
+    await this.create(organization);
+
+    return { payload: { registrationSuccess: true } };
   }
-
-  async findOrganizationById(req) {
-    const { id } = req.params;
-    return await this.organizationRepository.findById(id);
-  }
-
-  async fieldExists(field, value) {
-    if (field) return await this.organizationRepository.doesExist(field, value);
-
-    return false;
-  }
-
-  async updateOrganizationById() {}
 }
 
-export default new OrganizationService();
+export const toIOrganization = async () => {};
