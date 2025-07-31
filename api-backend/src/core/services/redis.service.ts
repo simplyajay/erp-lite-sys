@@ -1,10 +1,14 @@
 import { RedisKey } from "ioredis";
 import redisConfig from "../../config/redis.config.js";
 
-interface ISetOptions {
+export interface ISetOptions {
+  /** The Redis key to set */
   key: RedisKey;
+  /** The value to stringify and store */
   value: any;
+  /** Time to live in seconds (default: 60000) */
   ttlSeconds?: number;
+  /** If true, keeps the existing TTL */
   keepTTL?: boolean;
 }
 
@@ -72,7 +76,7 @@ class RedisService {
     }
   }
 
-  async setJSON<T>({ key, value, ttlSeconds = 60, keepTTL = false }: ISetOptions): Promise<T> {
+  async setJSON<T>({ key, value, ttlSeconds = 60000, keepTTL = false }: ISetOptions): Promise<T> {
     this.set({ key, value: JSON.stringify(value), ttlSeconds, keepTTL });
     return value;
   }

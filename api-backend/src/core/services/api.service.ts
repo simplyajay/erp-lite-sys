@@ -19,7 +19,7 @@ export const handleResponse = async <T>({
       return;
     }
 
-    const { clearCookies, cookies, payload, session } = result; // spread everything that is not clearCookies or cookies
+    const { clearCookies, cookies, payload } = result; // spread everything that is not clearCookies or cookies
 
     if (Array.isArray(cookies)) {
       cookies.forEach(({ name, value, options }) => res.cookie(name, value, options));
@@ -33,7 +33,6 @@ export const handleResponse = async <T>({
       ok: true,
       payload,
       message: successMessage || "Operation successful",
-      ...(session && { session }),
     } satisfies IResponse<typeof payload>);
     return;
   } catch (error) {

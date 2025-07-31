@@ -69,6 +69,7 @@ const useRegistration = () => {
         const { isFormValid } = validator;
         if (isFormValid) {
           const nextFlow = validator.flow;
+          console.log(validator.flow);
           handleNext(nextFlow);
         }
       }

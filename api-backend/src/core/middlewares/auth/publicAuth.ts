@@ -2,14 +2,14 @@ import envConfig from "@/config/env.config.js";
 import { nanoid } from "nanoid";
 import { extractAuthToken } from "@/core/services/token.service.js";
 import { Request, Response, NextFunction } from "express";
-import { FIVE_MINS_MS } from "@/modules/auth/session/auth.session";
+import { ONE_MIN } from "@/modules/auth/session/auth.session";
 
 const publicAuth = (req: Request, res: Response, next: NextFunction): void | Promise<void> => {
-  const cookieName = envConfig.get("GUEST");
+  const cookieName = envConfig.get("REGISTRATION_COOKIENAME");
 
   if (!cookieName) {
     console.error("cookie name is not defined @publicAuth.ts");
-    throw new Error("GUEST is not defined");
+    throw new Error("REGISTRATION_COOKIENAME is not defined");
   }
   let sid = extractAuthToken(req, cookieName);
 
@@ -20,7 +20,7 @@ const publicAuth = (req: Request, res: Response, next: NextFunction): void | Pro
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: FIVE_MINS_MS,
+      maxAge: ONE_MIN,
     });
   }
 

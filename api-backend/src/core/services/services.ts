@@ -26,8 +26,7 @@ export interface IExpectedError {
 export interface IServiceResponse<T> {
   cookies?: Array<ICookie>;
   clearCookies?: Array<IClearCookie>;
-  session?: ISessionResponse;
-  payload: T & { error?: IExpectedError };
+  payload: (T & { error?: undefined }) | { error: IExpectedError };
 }
 
 export interface IResponseHandler<T> {
@@ -40,7 +39,6 @@ export interface IResponseHandler<T> {
 export interface IResponse<T> {
   ok: boolean;
   payload: T;
-  session?: ISessionResponse;
   message: string;
 }
 
@@ -48,6 +46,11 @@ export interface ICookie {
   name: string;
   value: string;
   options: CookieOptions;
+}
+
+export interface ICookieValue {
+  sid: string;
+  maxAge: number;
 }
 
 export interface IClearCookie {

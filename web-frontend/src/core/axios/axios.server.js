@@ -7,6 +7,7 @@ export const serverAPI = async (requestFn, env) => {
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
+    headers["x-cookie-name"] = env;
   }
 
   // Call the passed-in function with the injected headers

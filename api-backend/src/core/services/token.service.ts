@@ -7,7 +7,9 @@ export const extractAuthToken = (req: Request, name: string): string | null => {
   if (!req) return null;
 
   const authHeader = req?.headers?.authorization;
-  if (typeof authHeader === "string" && authHeader?.startsWith("Bearer ")) {
+  const cookieName = req?.headers["x-cookie-name"];
+
+  if (typeof authHeader === "string" && authHeader?.startsWith("Bearer ") && name === cookieName) {
     return authHeader.split(" ")[1];
   }
 

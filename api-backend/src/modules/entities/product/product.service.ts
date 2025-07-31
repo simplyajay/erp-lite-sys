@@ -34,7 +34,7 @@ class ProductService {
       return await this.productRepository.updateById(id, req.body, { returnOriginal: false });
     } catch (error) {
       if (error.code === 11000) {
-        return { error: formatFormError(error) };
+        return { error };
       } else {
         throw error;
       }

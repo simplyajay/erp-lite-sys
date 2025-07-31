@@ -1,72 +1,102 @@
 import redisService from "../../../core/services/redis.service.js";
 import envConfig from "../../../config/env.config.js";
 import { Request } from "express";
-import { IExpectedError, IServiceResponse } from "@/core/services/services.js";
+import { ICookie, IExpectedError, IServiceResponse } from "@/core/services/services.js";
 import {
   IRegistrationRequestPayload,
-  IRegSessionCachedData,
-  validators,
+  IRegistrationData,
   FlowMap,
-  validateFlow,
-  overwriteRegistration,
+  ISetRegistrationDataOption,
 } from "./auth.registration.js";
-import { IPublicSession } from "../session/auth.session.js";
+import { overwriteRegistration, validators, validateFlow } from "./auth.registration.util.js";
+import { IPublicSession, ONE_HOUR, ONE_MIN } from "../session/auth.session.js";
+import { nanoid } from "nanoid";
+import { createCookie } from "@/core/utils/cookie.util.js";
 
-const cookieName = envConfig.get("GUEST");
+const name = envConfig.get("REGISTRATION");
 
-export const exportRegSessionData = async (
+export const startRegistrationSession = async (
+  req: Request<any, any, { _maxAge: number; sid: string }>
+): Promise<IServiceResponse<{ sessionActive: boolean }>> => {
+  const { sid, _maxAge } = req.body;
+
+  if (!sid || !_maxAge || !name) {
+    console.log("Unexpected error @startRegistrationSession");
+    throw new Error("Unexpected Error");
+  }
+
+  await setRegistrationData({ name, sid, options: { _maxAge } });
+
+  return { payload: { sessionActive: true } };
+};
+
+export const setRegistrationData = async ({
+  name,
+  sid,
+  newData,
+  options: { _maxAge } = {},
+}: ISetRegistrationDataOption): Promise<{
+  cookie: ICookie;
+  registrationData: IRegistrationData;
+}> => {
+  const defaultMaxAge = ONE_HOUR;
+  const sessionRedisKey = `${name}==${sid}`;
+
+  //make completedSteps an array of keyValue pairs. key is the string, value is the step so value can be used which step is the user in frontend
+  const data: IRegistrationData = newData ? newData : { identity: nanoid(64), completedSteps: [] };
+
+  await redisService.setJSON<IRegistrationData>({
+    key: sessionRedisKey,
+    value: data,
+    ttlSeconds: _maxAge ?? defaultMaxAge,
+  });
+
+  const cookie = createCookie(name, sid, { maxAge: _maxAge ?? defaultMaxAge });
+
+  return { cookie, registrationData: data };
+};
+
+export const exportRegistrationData = async (
   req: Request<any, any, { identity: string }>
-): Promise<IServiceResponse<{
-  registration?: IRegSessionCachedData;
-  redirect: boolean;
-}> | void> => {
+): Promise<IServiceResponse<IRegistrationData>> => {
   const sid = req.publicToken;
   const { identity } = req.body;
 
-  if (!sid || !cookieName) {
-    console.error("SID or cookieName is not defined @registration.ts @overwriteRegistration");
+  if (!sid || !name) {
+    //this will only happen if cookie expired before sending this request
+    //handle here, return some payload to redirect user
+    console.error("SID or name is not defined @registration.ts @overwriteRegistration");
     throw new Error("Cookie Name or SID is not defined");
   }
 
-  const redisKey = `${cookieName}==${sid}`;
-  const currentSession = await redisService.getJSON<IPublicSession>(redisKey);
+  const redisKey = `${name}==${sid}`;
 
-  if (!currentSession) {
-    console.error("No Public Session @registration.service.ts @exportCachedReg");
-    throw new Error("Unexpected Error: No Public session");
+  const existingData = await redisService.getJSON<IRegistrationData>(redisKey);
+
+  //this will happen if the request is sent AFTER the redis session and cookie expires. return a fresh registration data
+  if (!existingData) {
+    console.error("Unexpected Error @exportRegistrationData");
+    throw new Error("Unexpected Error");
+
+    // return newData here.
   }
 
-  if (!currentSession.registration || !identity || identity === "undefined") {
-    const { registration, sessionData, cookie } = await overwriteRegistration({
-      name: cookieName,
-      sid,
-      currentSession,
-    });
-
-    return {
-      payload: { registration, redirect: !identity ? true : false },
-      session: { isValid: true, data: sessionData },
-      ...(cookie && { cookies: [cookie] }), // only inject the cookie if it exists which it should in this case
-    };
+  //only check identity if its truthy and compare it to the existingData's identity.
+  if (identity && identity !== existingData?.identity) {
+    return { payload: { error: { status: 400, message: "Invalid URL" } } };
   }
 
-  const { registration } = currentSession;
-
-  if (identity !== registration.identity) {
-    return { payload: { error: { status: 400, message: "Invalid URL" }, redirect: false } };
-  }
-
-  return { payload: { registration, redirect: false } };
+  return { payload: existingData };
 };
 
 //THIS FUNCTION SHOULD ONLY BE EXECUTED ON FLOWS THAT IS DEFINED IN FLOWMAP
 export const validateCurrentStep = async (
   req: Request<any, any, IRegistrationRequestPayload>
-): Promise<IServiceResponse<{ isFormValid: boolean; registration?: IRegSessionCachedData }>> => {
+): Promise<IServiceResponse<{ isFormValid: boolean; registration?: IRegistrationData }>> => {
   try {
     const sid = req.publicToken;
 
-    if (!sid || !cookieName) {
+    if (!sid || !name) {
       console.error("SID or Name is not defined @registration.ts @overwriteRegistration");
       throw new Error("PUBLIC_TOKEN or SID is not defined");
     }
@@ -102,12 +132,12 @@ export const validateCurrentStep = async (
 
     //should only happen if cookie expired right before sending the request
     if (!currentSession) {
-      console.error("No Public Session @registration.service line 167");
+      console.error("No Public Session @registration.service line 104");
       throw new Error("Unexpected Error: No Session Found");
     }
 
-    const { registration, sessionData, cookie } = await overwriteRegistration({
-      name: cookieName,
+    const { registration, cookie } = await overwriteRegistration({
+      name,
       sid,
       currentSession,
       overwrite: { flow, payload: data },
@@ -116,7 +146,6 @@ export const validateCurrentStep = async (
     return {
       payload: { isFormValid: true, registration },
       cookies: [cookie],
-      session: { isValid: true, data: sessionData },
     };
   } catch (error) {
     console.log(error);

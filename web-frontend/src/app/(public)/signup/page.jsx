@@ -6,30 +6,37 @@ import { redirect } from "next/navigation";
 import { getCachedData } from "@/api/auth";
 import { serverAPI } from "@/core/axios/axios.server";
 import { flowMap } from "./util/form.util";
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 
 const RegistrationPage = async ({ searchParams }) => {
   let { identity, flow } = await searchParams;
   flow = flow in flowMap ? flow : "accountType";
 
+  const cookieStore = await cookies();
+  const regCookie = cookieStore.get(process.env.REGISTRATION_COOKIENAME);
+
   const res = await serverAPI(
     (headers) => getCachedData({ identity }, { headers }),
-    process.env.GUEST
+    process.env.REGISTRATION_COOKIENAME
   );
 
   //should only happen in an unexpected error
-  if (!res.ok || !res.payload || !res.payload?.registration || res.payload?.error) {
+  if (!res.ok || !res.payload || "error" in res.payload) {
     return <SomethingWentWrong />;
   }
 
-  const { session, payload } = res;
-  const { registration } = payload;
+  //res always returns identity
+  //this page should redirect to identity if identity is null or undefined
+  //there will always be a session because backend will just create one if none is present
 
-  if (session && session.isValid) {
-    const { createdAt, expiresAt } = session.data; // UPDATE THE GLOBAL STORE WITH THIS DATA
-  }
+  const { payload } = res;
+  const registration = payload;
 
-  if (payload?.redirect) redirect(`/signup?identity=${registration?.identity}&flow=${flow}`);
+  //check if flow is is included in completed steps. if its not, default to accountType. if flow in flowMap and flow in completedSteps
+
+  if (!identity) redirect(`/signup?identity=${registration?.identity}&flow=${flow}`);
+
+  // if (payload?.redirect) redirect(`/signup?identity=${registration?.identity}&flow=${flow}`);
 
   return (
     <div className="main-container flex items-center justify-center">

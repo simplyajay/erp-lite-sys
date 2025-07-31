@@ -2,21 +2,12 @@ import { create } from "zustand";
 
 const usePublicSession = create((set) => ({
   loading: true,
-  setLoading: (val) => set({ loading: val }),
-  flow: "accountType",
-  setFlow: (val) => set({ flow: val }),
-  identity: null,
-  setIdentity: (val) => set({ identity: val }),
-  currentStep: 1,
-  setCurrentStep: (val) =>
-    set((state) => ({ currentStep: typeof val === "function" ? val(state.currentStep) : val })),
-  currentError: { status: undefined, message: null },
-  setCurrentError: (val = {}) => set({ currentError: val }),
-  removeCurrentError: () => set({ currentError: { status: undefined, message: null } }),
-
-  createdAt: undefined,
+  setLoadng: (val) => set({ loading: val }),
+  createdAt: 0,
   setCreatedAt: (val) => set({ createdAt: val }),
-  expiresAt: undefined,
+  updatedAt: 0,
+  setUpdatedAt: (val) => set({ updatedAt: val }),
+  expiresAt: 0,
   setExpiresAt: (val) => set({ expiresAt: val }),
 }));
 

@@ -21,10 +21,9 @@ export const authenticateLogout = async (req: Request, res: Response): Promise<v
   return;
 };
 
-export const initializePublicSession = async (req: Request, res: Response): Promise<void> => {
+export const getAuthSessionMeta = async (req: Request, res: Response): Promise<void> => {
   await handleResponse({
-    promise: sessionService.publicSessionInit(req),
+    promise: sessionService.getAuthenticatedSessionMeta(req),
     res,
   });
-  return;
 };
